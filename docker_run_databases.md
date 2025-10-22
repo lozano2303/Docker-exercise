@@ -39,6 +39,14 @@ Para acceder al contenedor:
 docker exec -it mysql-db mysql -u root -p
 ```
 
+### Verificación de Datos
+
+Para verificar que los registros se insertaron correctamente:
+
+```bash
+docker exec -it mysql-db mysql -u root -pmi_password -e "USE GestionProyectos; SELECT COUNT(*) FROM Empresa;"
+```
+
 ### Reinicio del Contenedor
 
 ```bash
@@ -65,10 +73,16 @@ Este comando crea e inicia un contenedor PostgreSQL básico con la siguiente con
 
 ### Creación de Base de Datos y Tablas
 
-Para crear la base de datos y tablas, ejecutar el procedimiento desde `message.txt` adaptado para PostgreSQL:
+Para crear la base de datos y tablas, ejecutar los siguientes comandos en secuencia:
 
 ```bash
-docker exec -i postgres-db psql -U postgres < message_postgresql.sql
+# 1. Crear la base de datos (interactivo)
+docker exec -it postgres-db psql -U postgres
+CREATE DATABASE gestionproyectos;
+\q
+
+# 2. Crear las tablas y triggers
+docker exec -i postgres-db psql -U postgres -d gestionproyectos < setup_postgres.sql
 ```
 
 ### Inserción de 1000 Registros por Tabla
@@ -76,7 +90,15 @@ docker exec -i postgres-db psql -U postgres < message_postgresql.sql
 Para insertar los datos de prueba:
 
 ```bash
-docker exec -i postgres-db psql -U postgres -d GestionProyectos < insert_postgresql.sql
+docker exec -i postgres-db psql -U postgres -d gestionproyectos < insert_postgresql.sql
+```
+
+### Verificación de Datos
+
+Para verificar que los registros se insertaron correctamente:
+
+```bash
+docker exec -it postgres-db psql -U postgres -d gestionproyectos -c "SELECT COUNT(*) FROM Empresa;"
 ```
 
 ### Acceso al Contenedor
@@ -115,7 +137,7 @@ Este comando crea e inicia un contenedor MongoDB básico con la siguiente config
 Para crear la base de datos y colecciones, ejecutar el script adaptado desde `message.txt` para MongoDB:
 
 ```bash
-docker exec -i mongo-db mongo < message_mongodb.js
+docker exec -i mongo-db mongosh < message_mongodb.js
 ```
 
 ### Inserción de 1000 Documentos por Colección
@@ -123,7 +145,7 @@ docker exec -i mongo-db mongo < message_mongodb.js
 Para insertar los datos de prueba:
 
 ```bash
-docker exec -i mongo-db mongo < insert_mongodb.js
+docker exec -i mongo-db mongosh < insert_mongodb.js
 ```
 
 ### Acceso al Contenedor
@@ -132,6 +154,14 @@ Para acceder al contenedor:
 
 ```bash
 docker exec -it mongo-db mongosh
+```
+
+### Verificación de Datos
+
+Para verificar que los documentos se insertaron correctamente:
+
+```bash
+docker exec -it mongo-db mongosh --eval "use GestionProyectos; db.Empresa.countDocuments();"
 ```
 
 ### Reinicio del Contenedor
