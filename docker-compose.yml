@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: mi_password
+      MYSQL_DATABASE: GestionProyectos
+    volumes:
+      - ./message_mysql.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./insert_mysql.sql:/docker-entrypoint-initdb.d/02_data.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - db-network
+
+  postgres:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_PASSWORD: mi_password
+      POSTGRES_DB: GestionProyectos
+    volumes:
+      - ./message_postgresql.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./insert_postgresql.sql:/docker-entrypoint-initdb.d/02_data.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - db-network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongo-db
+    environment:
+      MONGO_INITDB_DATABASE: GestionProyectos
+    volumes:
+      - ./message_mongodb.js:/docker-entrypoint-initdb.d/01_schema.js:ro
+      - ./insert_mongodb.js:/docker-entrypoint-initdb.d/02_data.js:ro
+    ports:
+      - "27017:27017"
+    networks:
+      - db-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver-db
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: MiPassw0rd!
+      MSSQL_PID: Express
+    volumes:
+      - ./message.txt:/tmp/message.sql:ro
+      - ./insert_sqlserver.sql:/tmp/insert.sql:ro
+      - ./init_sqlserver.sh:/tmp/init_sqlserver.sh:ro
+    ports:
+      - "1433:1433"
+    command: /bin/bash -c "/tmp/init_sqlserver.sh"
+    networks:
+      - db-network
+
+networks:
+  db-network:
+    driver: bridge
