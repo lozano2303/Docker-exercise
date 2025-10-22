@@ -175,7 +175,7 @@ docker stop mongo-db
 
 ## Contenedor SQL Server
 
-### Comando Básico: `docker run --name sqlserver-db -e ACCEPT_EULA=Y -e SA_PASSWORD=MiPassw0rd! -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest`
+### Comando Básico: `docker run --name sqlserver-db -e ACCEPT_EULA=Y -e SA_PASSWORD=MiPassw0rd! -p 1433:1433 -v %cd%:/tmp -d mcr.microsoft.com/mssql/server:2019-latest`
 
 Este comando crea e inicia un contenedor SQL Server básico con la siguiente configuración:
 
@@ -189,20 +189,52 @@ Este comando crea e inicia un contenedor SQL Server básico con la siguiente con
 
 **Resultado**: Inicia un contenedor SQL Server básico listo para conexiones.
 
-### Creación de Base de Datos y Tablas
+### Instalación de Herramientas Cliente
 
-Para crear la base de datos y tablas, ejecutar el procedimiento desde `message.txt`:
+La imagen básica de SQL Server no incluye las herramientas cliente (`sqlcmd`). Para instalarlas:
 
 ```bash
-docker exec -i sqlserver-db /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -i message.txt
+# Acceder al contenedor como root
+docker exec -it -u 0 sqlserver-db bash
+
+# Dentro del contenedor, ejecutar:
+apt-get update
+apt-get install -y curl apt-transport-https gnupg
+curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+apt-get update
+ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
+source ~/.bashrc
+exit
 ```
 
-### Inserción de 1000 Registros por Tabla
+### Creación de Base de Datos y Tablas
 
-Para insertar los datos de prueba:
+Para crear la base de datos y tablas usando el script adaptado para SQL Server:
 
 ```bash
-docker exec -i sqlserver-db /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -i insert_sqlserver.sql
+docker exec -i sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -C -i /tmp/message_sqlserver.sql
+```
+
+### Comando Alternativo (Usando Docker Compose)
+
+También puedes usar Docker Compose que maneja todo automáticamente:
+
+```bash
+docker-compose up -d sqlserver
+```
+
+### Comando Manual (Paso a Paso)
+
+Si prefieres hacerlo paso a paso después de instalar las herramientas:
+
+```bash
+# Crear BD y tablas
+docker exec -i sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -C -i /tmp/message_sqlserver.sql
+
+# Insertar datos
+docker exec -i sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -C -i /tmp/insert_sqlserver.sql
 ```
 
 ### Acceso al Contenedor

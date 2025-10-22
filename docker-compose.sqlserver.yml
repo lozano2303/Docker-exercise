@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver-db
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: MiPassw0rd!
+      MSSQL_PID: Express
+    volumes:
+      - ./message_sqlserver.sql:/tmp/message.sql:ro
+      - ./insert_sqlserver.sql:/tmp/insert.sql:ro
+      - ./init_sqlserver.sh:/tmp/init_sqlserver.sh:ro
+    ports:
+      - "1433:1433"
+    networks:
+      - sqlserver-network
+
+networks:
+  sqlserver-network:
+    driver: bridge
