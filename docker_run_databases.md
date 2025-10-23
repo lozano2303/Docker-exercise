@@ -242,7 +242,7 @@ docker exec -i sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 
 Para acceder al contenedor:
 
 ```bash
-docker exec -it sqlserver-db /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!'
+docker exec -it sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -C
 ```
 
 ### Reinicio del Contenedor
@@ -251,6 +251,16 @@ docker exec -it sqlserver-db /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '
 docker start sqlserver-db
 docker stop sqlserver-db
 ```
+
+### Errores Comunes con el Usuario SA
+
+A veces puede aparecer un error como "Login failed for user 'SA'". Esto sucede porque:
+
+- La contraseña no cumple con los requisitos de complejidad (debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y símbolos).
+- El contenedor no terminó de inicializarse completamente.
+- Hay problemas de conexión o configuración.
+
+Para solucionarlo, verifica que la contraseña sea fuerte y espera a que el contenedor esté listo antes de intentar conectarte.
 
 ---
 
