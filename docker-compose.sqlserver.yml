@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -14,6 +12,26 @@ services:
       - ./init_sqlserver.sh:/tmp/init_sqlserver.sh:ro
     ports:
       - "1433:1433"
+    networks:
+      - sqlserver-network
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep sqlservr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  init-sqlserver:
+    image: mcr.microsoft.com/mssql-tools:latest
+    container_name: sqlserver-init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./message_sqlserver.sql:/tmp/message.sql:ro
+      - ./insert_sqlserver.sql:/tmp/insert.sql:ro
+      - ./init_sqlserver.sh:/tmp/init_sqlserver.sh:ro
+    command: /bin/bash /tmp/init_sqlserver.sh
     networks:
       - sqlserver-network
 
