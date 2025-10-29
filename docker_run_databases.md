@@ -189,6 +189,20 @@ Este comando crea e inicia un contenedor SQL Server básico con la siguiente con
 
 **Resultado**: Inicia un contenedor SQL Server básico listo para conexiones.
 
+### Comando Recomendado (Usando Docker Compose)
+
+Para una configuración más robusta y automatizada, se recomienda usar Docker Compose que maneja la inicialización automáticamente:
+
+```bash
+# Iniciar el contenedor SQL Server con inicialización automática
+docker-compose -f docker-compose.sqlserver.yml up --abort-on-container-exit
+
+# Para mantener el contenedor corriendo después de la inicialización
+docker-compose -f docker-compose.sqlserver.yml up -d sqlserver
+```
+
+Este enfoque usa un contenedor de inicialización que ejecuta los scripts SQL automáticamente, evitando problemas de sincronización.
+
 ### Instalación de Herramientas Cliente
 
 La imagen básica de SQL Server no incluye las herramientas cliente (`sqlcmd`). Para instalarlas:
@@ -217,14 +231,6 @@ Para crear la base de datos y tablas usando el script adaptado para SQL Server:
 docker exec -i sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -C -i /tmp/message_sqlserver.sql
 ```
 
-### Comando Alternativo (Usando Docker Compose)
-
-También puedes usar Docker Compose que maneja todo automáticamente:
-
-```bash
-docker-compose up -d sqlserver
-```
-
 ### Comando Manual (Paso a Paso)
 
 Si prefieres hacerlo paso a paso después de instalar las herramientas:
@@ -235,6 +241,18 @@ docker exec -i sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 
 
 # Insertar datos
 docker exec -i sqlserver-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'MiPassw0rd!' -C -i /tmp/insert_sqlserver.sql
+```
+
+### Verificación de Datos
+
+Para verificar que los registros se insertaron correctamente:
+
+```bash
+# Usando un contenedor temporal de herramientas
+docker run --rm -it --network docker-exercise_sqlserver-network mcr.microsoft.com/mssql-tools:latest /opt/mssql-tools/bin/sqlcmd -S sqlserver-db -U SA -P "MiPassw0rd!" -Q "USE GestionProyectos; SELECT COUNT(*) AS Total_Empresa FROM Empresa;"
+
+# Para otras tablas
+docker run --rm -it --network docker-exercise_sqlserver-network mcr.microsoft.com/mssql-tools:latest /opt/mssql-tools/bin/sqlcmd -S sqlserver-db -U SA -P "MiPassw0rd!" -Q "USE GestionProyectos; SELECT COUNT(*) AS Total_Cliente FROM Cliente;"
 ```
 
 ### Acceso al Contenedor
@@ -259,8 +277,12 @@ A veces puede aparecer un error como "Login failed for user 'SA'". Esto sucede p
 - La contraseña no cumple con los requisitos de complejidad (debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y símbolos).
 - El contenedor no terminó de inicializarse completamente.
 - Hay problemas de conexión o configuración.
+- **Problema común**: Scripts con caracteres de retorno de carro (`\r`) al final de líneas, causando errores en Linux.
 
-Para solucionarlo, verifica que la contraseña sea fuerte y espera a que el contenedor esté listo antes de intentar conectarte.
+Para solucionarlo:
+- Verifica que la contraseña sea fuerte y espera a que el contenedor esté listo antes de intentar conectarte.
+- Si usas scripts creados en Windows, elimina los caracteres `\r` con: `docker run --rm -v %cd%:/work alpine sh -c "sed -i 's/\r$//' /work/init_sqlserver.sh"`
+- Usa Docker Compose para una inicialización más confiable.
 
 ---
 
