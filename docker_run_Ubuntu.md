@@ -60,6 +60,38 @@ service mysql status
 - **`service mysql start`**: Inicia el servicio MySQL en el contenedor.
 - **`service mysql status`**: Verifica el estado actual del servicio MySQL.
 
+### Creación de Base de Datos y Tablas
+
+```bash
+# Crear base de datos
+mysql -u root -p
+CREATE DATABASE GestionProyectos;
+USE GestionProyectos;
+\q
+
+# Copiar y ejecutar script de esquema
+docker cp message_mysql.sql ubuntu-db:/tmp/
+type message_mysql.sql | docker exec -i ubuntu-db mysql -u root -pmi_password GestionProyectos
+```
+
+![Creación de BD MySQL](capturas/second%20exercise%20bds%20in%20ubuntu/mysql/create%20database.png)
+
+### Inserción de 1000 Registros
+
+```bash
+# Copiar y ejecutar script de inserción
+docker cp insert_mysql.sql ubuntu-db:/tmp/
+type insert_mysql.sql | docker exec -i ubuntu-db mysql -u root -pmi_password GestionProyectos
+```
+
+![Inserción de datos MySQL](capturas/second%20exercise%20bds%20in%20ubuntu/mysql/create%20tables%20and%20insert%201000%20registers.png)
+
+### Verificación de Registros
+
+```bash
+docker exec -it ubuntu-db mysql -u root -pmi_password GestionProyectos -e "SELECT COUNT(*) FROM Empresa;"
+```
+
 ## Paso 4: Instalación de PostgreSQL
 
 ### Comando: `apt install -y postgresql postgresql-contrib`
@@ -81,9 +113,42 @@ service postgresql start
 
 ![Inicio del servicio PostgreSQL](capturas/second%20exercise%20bds%20in%20ubuntu/postgresql/postgresql_03_inicio_servicio.png)
 
+### Creación de Base de Datos
+
+```bash
+# Crear base de datos como usuario postgres
+docker exec -it ubuntu-db bash -c "su - postgres -c psql"
+CREATE DATABASE gestionproyectos;
+\q
+```
+
+![Creación de BD PostgreSQL](capturas/second%20exercise%20bds%20in%20ubuntu/postgresql/create%20database.png)
+
+### Creación de Tablas y Triggers
+
+```bash
+# Copiar y ejecutar script de esquema
+docker cp setup_postgres.sql ubuntu-db:/tmp/
+type setup_postgres.sql | docker exec -i ubuntu-db bash -c "su - postgres -c 'psql -d gestionproyectos'"
+```
+
+![Creación de tablas PostgreSQL](capturas/second%20exercise%20bds%20in%20ubuntu/postgresql/create%20tables.png)
+
+### Inserción de 1000 Registros
+
+```bash
+# Copiar y ejecutar script de inserción
+docker cp insert_postgresql.sql ubuntu-db:/tmp/
+type insert_postgresql.sql | docker exec -i ubuntu-db bash -c "su - postgres -c 'psql -d gestionproyectos'"
+```
+
+![Inserción de datos PostgreSQL](capturas/second%20exercise%20bds%20in%20ubuntu/postgresql/insert%20and%20list.png)
+
 ### Descripción:
 
 - **`service postgresql start`**: Inicia el servicio PostgreSQL en el contenedor.
+- **`CREATE DATABASE gestionproyectos`**: Crea la base de datos del proyecto.
+- **Scripts SQL**: Crean tablas, triggers y datos de prueba.
 
 ## Paso 5: Instalación de MongoDB
 
@@ -112,10 +177,31 @@ Este comando instala MongoDB en el contenedor Ubuntu:
 - **`mkdir -p /data/db`**: Crea el directorio de datos.
 - **`mongod --fork --logpath /var/log/mongodb.log`**: Inicia MongoDB en modo fork.
 
+### Creación de Base de Datos y Colecciones
+
+```bash
+# Copiar y ejecutar script de esquema
+docker cp message_mongodb.js ubuntu-db:/tmp/
+type message_mongodb.js | docker exec -i ubuntu-db mongosh
+```
+
+![Creación de BD MongoDB](capturas/second%20exercise%20bds%20in%20ubuntu/mongodb/create%20database.png)
+
+### Inserción de 1000 Documentos
+
+```bash
+# Copiar y ejecutar script de inserción
+docker cp insert_mongodb.js ubuntu-db:/tmp/
+type insert_mongodb.js | docker exec -i ubuntu-db mongosh --quiet
+```
+
+![Inserción de datos MongoDB](capturas/second%20exercise%20bds%20in%20ubuntu/mongodb/1000%20insertions.png)
+
 ### Verificación de MongoDB
 
 ```bash
 mongosh --eval "db.runCommand('ping')"
+docker exec -i ubuntu-db mongosh --eval "use GestionProyectos; db.Empresa.countDocuments()"
 ```
 
 ![Verificación de MongoDB](capturas/second%20exercise%20bds%20in%20ubuntu/mongodb/mongodb_04_verificacion.png)
@@ -123,6 +209,7 @@ mongosh --eval "db.runCommand('ping')"
 ### Descripción:
 
 - **`mongosh --eval "db.runCommand('ping')"`**: Verifica que MongoDB esté funcionando correctamente.
+- **Scripts JS**: Crean la base de datos, colecciones, índices y datos de prueba.
 
 ## Paso 6: Instalación de SQL Server 2022
 
